@@ -20,6 +20,11 @@
   },
   "homepage": "https://github.com/paulcbetts/xvfb-maybe",
   "dependencies": {
-    "debug": "^2.2.0"
+    "debug": "^2.2.0",
+    "which": "^1.2.4"
+  },
+  "devDependencies": {
+    "babel-eslint": "^5.0.0",
+    "eslint": "^2.1.0"
   }
 }
