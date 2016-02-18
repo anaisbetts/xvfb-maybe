@@ -1,0 +1,25 @@
+{
+  "name": "xvfb-maybe",
+  "version": "0.0.1",
+  "description": "Runs xvfb-run only if you need to, useful for Electron unit tests",
+  "bin": {
+    "xvfb-maybe": "./src/xvfb-maybe.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paulcbetts/xvfb-maybe"
+  },
+  "keywords": [
+    "xvfb",
+    "electron"
+  ],
+  "author": "Paul Betts <paul@paulbetts.org>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/paulcbetts/xvfb-maybe/issues"
+  },
+  "homepage": "https://github.com/paulcbetts/xvfb-maybe",
+  "dependencies": {
+    "debug": "^2.2.0"
+  }
+}
