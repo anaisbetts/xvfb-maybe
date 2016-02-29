@@ -2,6 +2,38 @@
 
 const path = require('path');
 const sfs = require('fs');
+const isWindows = process.platform === 'win32';
+
+function statSyncNoException(file) {
+  try {
+    return sfs.statSync(file);
+  } catch (e) {
+    return null;
+  }
+}
+
+function runDownPath(exe) {
+  // NB: Windows won't search PATH looking for executables in spawn like
+  // Posix does
+
+  // Files with any directory path don't get this applied
+  if (exe.match(/[\\\/]/)) {
+    return exe;
+  }
+
+  let target = path.join('.', exe);
+  if (statSyncNoException(target)) {
+    return target;
+  }
+
+  let haystack = process.env.PATH.split(isWindows ? ';' : ':');
+  for (let p of haystack) {
+    let needle = path.join(p, exe);
+    if (statSyncNoException(needle)) return needle;
+  }
+
+  return exe;
+}
 
 function findActualExecutable(fullPath, args) {
   // POSIX can just execute scripts directly, no need for silly goosery
@@ -44,4 +76,4 @@ function findActualExecutable(fullPath, args) {
   return { cmd: fullPath, args: args };
 }
 
-module.exports = findActualExecutable;
+module.exports = { findActualExecutable: findActualExecutable, runDownPath: runDownPath };

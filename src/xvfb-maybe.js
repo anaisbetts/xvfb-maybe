@@ -4,21 +4,24 @@
 
 const spawnOg = require('child_process').spawn;
 const which = require('which');
-const findActualExecutable = require('./find-actual-executable');
+const fae = require('./find-actual-executable');
 
 const d = require('debug')('xvfb-maybe');
 
 function spawn(exe, params, opts) {
   opts = opts || null;
   
+  let fullExe = fae.runDownPath(exe);
+  let info = fae.findActualExecutable(fullExe, params);
+  
   return new Promise((resolve, reject) => {
     let proc = null;
 
-    d(`Spawning ${exe} ${params.join(' ')}`);
+    d(`Spawning ${info.cmd} ${info.args.join(' ')}`);
     if (!opts) {
-      proc = spawnOg(exe, params);
+      proc = spawnOg(info.cmd, info.args);
     } else {
-      proc = spawnOg(exe, params, opts);
+      proc = spawnOg(info.cmd, info.args, opts);
     }
     
     if (!proc) {
@@ -84,14 +87,12 @@ function main(args) {
   
   if (process.platform === 'win32' || process.platform === 'darwin') {
     d("Platform doesn't match, leaving");
-    let info = findActualExecutable(args[0], args.splice(1));
-    return spawn(info.cmd, info.args, {cwd: undefined, env: process.env, stdio: 'inherit'});
+    return spawn(args[0], args.splice(1), {cwd: undefined, env: process.env, stdio: 'inherit'});
   }
   
   if (process.env.DISPLAY) {
     d("DISPLAY is set, using local X Server");
-    let info = findActualExecutable(args[0], args.splice(1));
-    return spawn(info.cmd, info.args, {cwd: undefined, env: process.env, stdio: 'inherit'});
+    return spawn(args[0], args.splice(1), {cwd: undefined, env: process.env, stdio: 'inherit'});
   }
   
   let xvfbRun = null;
@@ -101,8 +102,7 @@ function main(args) {
     return Promise.reject(new Error("Failed to find xvfb-run in PATH. Use your distro's package manager to install it."));
   }
   
-  let info = findActualExecutable(xvfbRun, args);
-  return spawn(info.cmd, info.args, {cwd: undefined, env: process.env, stdio: 'inherit'});
+  return spawn(xvfbRun, args, {cwd: undefined, env: process.env, stdio: 'inherit'});
 }
 
 if (process.mainModule === module) {
