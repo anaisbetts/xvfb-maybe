@@ -42,13 +42,12 @@ function findActualExecutable(fullPath, args) {
   // NB: When you write something like `surf-client ... -- surf-build` on Windows,
   // a shell would normally convert that to surf-build.cmd, but since it's passed
   // in as an argument, it doesn't happen
-  if (!sfs.existsSync(fullPath)) {
-    const possibleExts = ['.exe', '.bat', '.cmd', '.ps1'];
-    let realExecutable = possibleExts.find((x) => sfs.existsSync(`${fullPath}${x}`));
+  const possibleExts = ['.exe', '.bat', '.cmd', '.ps1'];
+  let extToUse = possibleExts.find((x) => sfs.existsSync(fullPath + x));
 
-    if (realExecutable) {
-      return findActualExecutable(realExecutable, args);
-    }
+  if (extToUse) {
+    let realExecutable = fullPath + extToUse;
+    return findActualExecutable(realExecutable, args);
   }
 
   if (fullPath.match(/\.ps1$/i)) {
