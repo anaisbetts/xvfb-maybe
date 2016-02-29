@@ -4,6 +4,7 @@
 
 const spawnOg = require('child_process').spawn;
 const which = require('which');
+const findActualExecutable = require('./find-actual-executable');
 
 const d = require('debug')('xvfb-maybe');
 
@@ -83,12 +84,14 @@ function main(args) {
   
   if (process.platform === 'win32' || process.platform === 'darwin') {
     d("Platform doesn't match, leaving");
-    return spawn(args[0], args.splice(1), {cwd: undefined, env: process.env, stdio: 'inherit'});
+    let info = findActualExecutable(args[0], args.splice(1));
+    return spawn(info.cmd, info.args, {cwd: undefined, env: process.env, stdio: 'inherit'});
   }
   
   if (process.env.DISPLAY) {
     d("DISPLAY is set, using local X Server");
-    return spawn(args[0], args.splice(1), {cwd: undefined, env: process.env, stdio: 'inherit'});
+    let info = findActualExecutable(args[0], args.splice(1));
+    return spawn(info.cmd, info.args, {cwd: undefined, env: process.env, stdio: 'inherit'});
   }
   
   let xvfbRun = null;
@@ -98,7 +101,8 @@ function main(args) {
     return Promise.reject(new Error("Failed to find xvfb-run in PATH. Use your distro's package manager to install it."));
   }
   
-  return spawn(xvfbRun, args, {cwd: undefined, env: process.env, stdio: 'inherit'});
+  let info = findActualExecutable(xvfbRun, args);
+  return spawn(info.cmd, info.args, {cwd: undefined, env: process.env, stdio: 'inherit'});
 }
 
 if (process.mainModule === module) {
