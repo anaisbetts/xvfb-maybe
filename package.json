@@ -1,6 +1,6 @@
 {
   "name": "xvfb-maybe",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Runs xvfb-run only if you need to, useful for Electron unit tests",
   "bin": {
     "xvfb-maybe": "./src/xvfb-maybe.js"
