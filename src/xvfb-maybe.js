@@ -35,14 +35,13 @@ function spawn(exe, params, opts) {
     // * We've got an exit code
     let rejected = false;
     let refCount = 3;
-    let release = () => { 
+    let release = () => {
       if (--refCount <= 0 && !rejected) resolve(stdout);
     };
 
     let stdout = '';
     let bufHandler = (b) => {
-      let chunk = b.toString();
-      stdout += chunk;
+      stdout += b.toString();
     };
     
     if (proc.stdout) {
@@ -58,7 +57,7 @@ function spawn(exe, params, opts) {
     } else {
       release();
     }
-    
+
     proc.on('error', (e) => reject(e));
 
     proc.on('close', (code) => {
@@ -67,10 +66,10 @@ function spawn(exe, params, opts) {
       } else {
         rejected = true;
         reject(new Error(`Failed with exit code: ${code}\nOutput:\n${stdout}`));
-      }      
+      }
     });
   });
-}    
+}
 
 function showHelp() {
   console.log("Usage: xvfb-maybe command args...\n");
@@ -84,15 +83,20 @@ function main(args) {
 
     return Promise.resolve(true);
   }
+
+  const dblDashPos = args.indexOf('--'),
+    xvfbArgs = dblDashPos === -1 ? [] : args.splice(0, dblDashPos),
+    exeCmd = args[dblDashPos === -1 ? 0 : 1],
+    exeArgs = args.splice(dblDashPos === -1 ? 1 : 2);
   
   if (process.platform === 'win32' || process.platform === 'darwin') {
     d("Platform doesn't match, leaving");
-    return spawn(args[0], args.splice(1), {cwd: undefined, env: process.env, stdio: 'inherit'});
+    return spawn(exeCmd, exeArgs, {cwd: undefined, env: process.env, stdio: 'inherit'});
   }
   
   if (process.env.DISPLAY) {
     d("DISPLAY is set, using local X Server");
-    return spawn(args[0], args.splice(1), {cwd: undefined, env: process.env, stdio: 'inherit'});
+    return spawn(exeCmd, exeArgs, {cwd: undefined, env: process.env, stdio: 'inherit'});
   }
   
   let xvfbRun = null;
@@ -102,7 +106,7 @@ function main(args) {
     return Promise.reject(new Error("Failed to find xvfb-run in PATH. Use your distro's package manager to install it."));
   }
   
-  return spawn(xvfbRun, args, {cwd: undefined, env: process.env, stdio: 'inherit'});
+  return spawn(xvfbRun, [].concat(xvfbArgs, [exeCmd], exeArgs), {cwd: undefined, env: process.env, stdio: 'inherit'});
 }
 
 if (process.mainModule === module) {
@@ -111,5 +115,5 @@ if (process.mainModule === module) {
     .catch((e) => {
       console.error(e.message);
       process.exit(-1);
-    });  
+    });
 }
